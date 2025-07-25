@@ -42,7 +42,7 @@ const projects: Project[] = [
     title: "Link-Hub",
     description:
       "Portfolio moderne avec présentation de projets et interface interactive pour présenter mes créations.",
-    url: "#",
+    url: "https://link-hub-pi.vercel.app/",
     image: "/images/link-hub-preview.jpg",
     status: "completed",
     progress: 100,
@@ -70,7 +70,7 @@ const projects: Project[] = [
     title: "CS-50 Blog",
     description:
       "Application de suivi financier personnel avec IA intégrée pour des recommandations personnalisées.",
-    url: "#",
+    url: "https://cs50-blog-online.vercel.app/",
     image: "/images/fm-next-preview.jpg",
     status: "in-progress",
     progress: 85,
@@ -98,7 +98,7 @@ const projects: Project[] = [
     title: "ProjectManager",
     description:
       "Application complète de gestion de projets avec suivi des tâches, collaboration d'équipe et analytics.",
-    url: "#",
+    url: "https://project-manager-online.vercel.app/",
     image: "/images/project-manager-preview.jpg",
     status: "completed",
     progress: 100,
@@ -127,7 +127,7 @@ const projects: Project[] = [
     title: "New Horizon",
     description:
       "Plateforme collaborative de gestion de projets avec fonctionnalités avancées de communication.",
-    url: "#",
+    url: "https://new-horizon-inky.vercel.app/",
     image: "/images/new-horizon-preview.jpg",
     status: "completed",
     progress: 100,
@@ -155,7 +155,7 @@ const projects: Project[] = [
     title: "FM OnLine",
     description:
       "Application de suivi financier personnel avec IA intégrée pour des recommandations personnalisées.",
-    url: "#",
+    url: "https://fm-online-ten.vercel.app/",
     image: "/images/fm-next-preview.jpg",
     status: "in-progress",
     progress: 85,
@@ -183,7 +183,7 @@ const projects: Project[] = [
     title: "FM Next",
     description:
       "Application de suivi financier personnel avec IA intégrée pour des recommandations personnalisées.",
-    url: "#",
+    url: "https://fm-next-jade.vercel.app/",
     image: "/images/fm-next-preview.jpg",
     status: "in-progress",
     progress: 85,
