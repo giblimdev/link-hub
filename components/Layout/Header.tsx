@@ -15,13 +15,14 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { usePathname } from "next/navigation";
 
 const navItems = [
-  { name: "Accueil", href: "#home", icon: Home },
-  { name: "À propos", href: "#about", icon: User },
-  { name: "Projets", href: "#projects", icon: Briefcase },
-  { name: "Compétences", href: "#skills", icon: Code },
-  { name: "Contact", href: "#contact", icon: Mail },
+  { name: "Accueil", href: "/", icon: Home },
+  { name: "À propos", href: "/about", icon: User },
+  { name: "Projets", href: "/projects", icon: Briefcase },
+  { name: "Compétences", href: "/skills", icon: Code },
+  { name: "Contact", href: "/contact", icon: Mail },
   { name: "Liens", href: "/links", icon: ExternalLink },
 ];
 
@@ -29,14 +30,32 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [isClient, setIsClient] = useState(false);
+  const pathname = usePathname();
+
+  // Initialisation client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Détection du scroll pour effet de transparence - Optimisé
   useEffect(() => {
+    if (!isClient) return;
+
     let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
-          setIsScrolled(window.scrollY > 50);
+          const scrollY = window.scrollY;
+          setIsScrolled(scrollY > 50);
+
+          // Calcul de la progression du scroll
+          const totalHeight =
+            document.documentElement.scrollHeight - window.innerHeight;
+          const progress = totalHeight > 0 ? scrollY / totalHeight : 0;
+          setScrollProgress(Math.min(progress, 1));
+
           ticking = false;
         });
         ticking = true;
@@ -45,10 +64,12 @@ export default function Header() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isClient]);
 
   // Détection de la section active - Optimisé
   useEffect(() => {
+    if (!isClient) return;
+
     let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
@@ -75,18 +96,23 @@ export default function Header() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isClient]);
 
-  const handleNavClick = useCallback((href: string) => {
-    setIsOpen(false);
-    if (href.startsWith("#")) {
-      const element = document.getElementById(href.substring(1));
-      element?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, []);
+  const handleNavClick = useCallback(
+    (href: string) => {
+      setIsOpen(false);
+      if (href.startsWith("#") && isClient) {
+        const element = document.getElementById(href.substring(1));
+        element?.scrollIntoView({ behavior: "smooth" });
+      }
+    },
+    [isClient]
+  );
 
   // Fermer le menu mobile lors du redimensionnement
   useEffect(() => {
+    if (!isClient) return;
+
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setIsOpen(false);
@@ -95,13 +121,13 @@ export default function Header() {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [isClient]);
 
   return (
     <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
+      initial={isClient ? { y: -100 } : {}}
+      animate={isClient ? { y: 0 } : {}}
+      transition={isClient ? { duration: 0.6, ease: "easeOut" } : {}}
       className={cn(
         "fixed top-0 left-0 right-0 z-40 transition-all duration-300",
         isScrolled
@@ -113,9 +139,9 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <motion.div
-            whileHover={{ scale: 1.05 }}
+            whileHover={isClient ? { scale: 1.05 } : {}}
             className="flex items-center space-x-3 cursor-pointer"
-            onClick={() => handleNavClick("#home")}
+            onClick={() => handleNavClick("/")}
           >
             <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-lg">JH</span>
@@ -133,16 +159,14 @@ export default function Header() {
               const Icon = item.icon;
               const isActive =
                 activeSection === item.href.substring(1) ||
-                (item.href === "/links" &&
-                  typeof window !== "undefined" &&
-                  window.location.pathname === "/links");
+                (item.href === "/links" && pathname === "/links");
 
               return (
                 <motion.div
                   key={item.name}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  initial={isClient ? { opacity: 0, y: -20 } : {}}
+                  animate={isClient ? { opacity: 1, y: 0 } : {}}
+                  transition={isClient ? { delay: index * 0.1 } : {}}
                 >
                   {item.href.startsWith("#") ? (
                     <button
@@ -156,7 +180,7 @@ export default function Header() {
                     >
                       <Icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
                       <span>{item.name}</span>
-                      {isActive && (
+                      {isActive && isClient && (
                         <motion.div
                           layoutId="activeTab"
                           className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-lg border border-blue-600/20"
@@ -211,20 +235,20 @@ export default function Header() {
               {isOpen ? (
                 <motion.div
                   key="close"
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  initial={isClient ? { rotate: -90, opacity: 0 } : {}}
+                  animate={isClient ? { rotate: 0, opacity: 1 } : {}}
+                  exit={isClient ? { rotate: 90, opacity: 0 } : {}}
+                  transition={isClient ? { duration: 0.2 } : {}}
                 >
                   <X className="w-6 h-6" />
                 </motion.div>
               ) : (
                 <motion.div
                   key="menu"
-                  initial={{ rotate: 90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: -90, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  initial={isClient ? { rotate: 90, opacity: 0 } : {}}
+                  animate={isClient ? { rotate: 0, opacity: 1 } : {}}
+                  exit={isClient ? { rotate: -90, opacity: 0 } : {}}
+                  transition={isClient ? { duration: 0.2 } : {}}
                 >
                   <Menu className="w-6 h-6" />
                 </motion.div>
@@ -239,19 +263,19 @@ export default function Header() {
             <>
               {/* Backdrop */}
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={isClient ? { opacity: 0 } : {}}
+                animate={isClient ? { opacity: 1 } : {}}
+                exit={isClient ? { opacity: 0 } : {}}
                 className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30"
                 onClick={() => setIsOpen(false)}
               />
 
               {/* Menu Content */}
               <motion.div
-                initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
+                initial={isClient ? { opacity: 0, y: -20, scale: 0.95 } : {}}
+                animate={isClient ? { opacity: 1, y: 0, scale: 1 } : {}}
+                exit={isClient ? { opacity: 0, y: -20, scale: 0.95 } : {}}
+                transition={isClient ? { duration: 0.2 } : {}}
                 className="absolute top-full left-4 right-4 mt-2 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 p-4 z-40"
               >
                 <div className="space-y-2">
@@ -259,16 +283,14 @@ export default function Header() {
                     const Icon = item.icon;
                     const isActive =
                       activeSection === item.href.substring(1) ||
-                      (item.href === "/links" &&
-                        typeof window !== "undefined" &&
-                        window.location.pathname === "/links");
+                      (item.href === "/links" && pathname === "/links");
 
                     return (
                       <motion.div
                         key={item.name}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                        initial={isClient ? { opacity: 0, x: -20 } : {}}
+                        animate={isClient ? { opacity: 1, x: 0 } : {}}
+                        transition={isClient ? { delay: index * 0.05 } : {}}
                       >
                         {item.href.startsWith("#") ? (
                           <button
@@ -304,9 +326,11 @@ export default function Header() {
 
                   {/* CTA Mobile */}
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: navItems.length * 0.05 }}
+                    initial={isClient ? { opacity: 0, y: 20 } : {}}
+                    animate={isClient ? { opacity: 1, y: 0 } : {}}
+                    transition={
+                      isClient ? { delay: navItems.length * 0.05 } : {}
+                    }
                     className="pt-4 border-t border-gray-200/50"
                   >
                     <Button
@@ -326,26 +350,14 @@ export default function Header() {
       </nav>
 
       {/* Barre de progression de scroll */}
-      <motion.div
-        className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500"
-        style={{
-          scaleX:
-            typeof window !== "undefined"
-              ? window.scrollY /
-                (document.documentElement.scrollHeight - window.innerHeight)
-              : 0,
-          transformOrigin: "0%",
-        }}
-        initial={{ scaleX: 0 }}
-        animate={{
-          scaleX:
-            typeof window !== "undefined"
-              ? window.scrollY /
-                (document.documentElement.scrollHeight - window.innerHeight)
-              : 0,
-        }}
-        transition={{ duration: 0.1 }}
-      />
+      {isClient && (
+        <motion.div
+          className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 w-full origin-left"
+          style={{ scaleX: scrollProgress }}
+          initial={{ scaleX: 0 }}
+          transition={{ duration: 0.1 }}
+        />
+      )}
     </motion.header>
   );
 }
